@@ -9,13 +9,18 @@ Processing satellite images can be problematic due to atmospheric phenomenons li
 Description of files:
 * [environment.yaml](environment.yaml) - Anaconda environment
   * Dependecies for both file. Pip install also required.
-* [loader.ipynb](loader.ipynb) - How to download images from entire regions
+* [loader.ipynb](loader.ipynb) - How to download images from entire regions.
   * Requirements, creating region of interest, dowloading from SentineHub.
   * [roi.geojson](roi.geojson) - Coordinates of Region of Interest(RoI).
-* [cldetector.py](cldetector.py) - Cloud detection based on pixel-wise information
+* [cldetector.py](cldetector.py) - Cloud detection based on pixel-wise information.
+  * [pixelwise_v8.h5](pixelwise_v8.h5) - Used to reconstruct neural network structure.
   * [pixelwise_v8_weights.hdf5](pixelwise_v8_weights.hdf5) - Model weights.
+* [example.py](example.py) - Example to show the use of the detector and the it's output.
+  * [test_set_pixelwise.rar](test/test_set_pixelwise.rar) - For example.py. Has to be unpacked.
 
 ## How does it work?
+
+Example.py has a 
 
 1, Import cldetector.py
 ```
@@ -29,9 +34,9 @@ std = np.std(image_time_series, axis=0)
 temporal_product = np.sum(pixel_std, axis=2) * 2 / 13
 ```
 
-3, Initialize an CloudDetector object by passing the input array. The input size should be (number of pixels, 14). The second index consist of 13 spectral band value plus one temporal product.
+3, Initialize an CloudDetector object by passing the input array. The expected input is an image with dimensions: (x, y, 14). The last index consist of 13 spectral band value plus one temporal product. Model type can be 'pixel' or 'cnn'.
 ```
-glassball = cld.CloudDetector(pixel_array)
+glassball = cld.CloudDetector(image, modelType='pixel')
 ```
 4, Call the prediction function. output[i]: (land probability, cloud probability, shadow probability)
 ```
@@ -39,12 +44,12 @@ output = glassball.predict()
 ```
 5, Call the update function in case of new data. Repeat step 4.
 ```
-glassball.updateInput(new_pixel_array)
+glassball.updateInput(new_image)
 ```
 
 ## Expected quality of predictions
 
-A very small training set was used to train the model. I plan to update the model in the future (more data, 2D convolution layers, etc.).
+A small training set was used to train the model. I plan to update the model in the future (more data, 2D convolution layers, etc.).
 
 V8 model (pixel)
 The trained model works fairly well for classic clouds and cirrus. Few false detection expected on white structures. Fog usually partly detected. Bodies of water often mislabeled as shadow.
@@ -53,4 +58,8 @@ The trained model works fairly well for classic clouds and cirrus. Few false det
 <img src="results/v8_15_cloud_mask.png" height="200">  <img src="results/v8_15_shadow_mask.png" height="200">
 <img src="results/v8_14_cloud_mask.png" height="200">  <img src="results/v8_14_shadow_mask.png" height="200">
 <img src="results/v8_16_cloud_mask.png" height="200">  <img src="results/v8_16_shadow_mask.png" height="200">
+
+CNN model
+
+Coming soon...
 
