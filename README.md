@@ -20,7 +20,7 @@ Description of files:
 
 ## How does it work?
 
-Example.py has a 
+Example.py uses an already processed image so step 2 is skipped.
 
 1, Import cldetector.py
 ```
@@ -38,11 +38,11 @@ temporal_product = np.sum(pixel_std, axis=2) * 2 / 13
 ```
 glassball = cld.CloudDetector(image, modelType='pixel')
 ```
-4, Call the prediction function. output[i]: (land probability, cloud probability, shadow probability)
+4, Call the prediction function. Output is a (x, y, 3) shape array. Land, cloud and shadow probability are included.
 ```
 output = glassball.predict()
 ```
-5, Call the update function in case of new data. Repeat step 4.
+5, Call the update function in case of new data. Repeat step 4 for prediction.
 ```
 glassball.updateInput(new_image)
 ```
