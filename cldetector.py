@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import tensorflow as tf
 
@@ -6,6 +7,8 @@ class CloudDetector():
     def __init__(self, input, modelType='pixel'):
         'Initialization'
         self.errorFlag = False
+        self.model_file_pixel = 'pixelwise_v8'
+        self.model_file_cnn = 'cnn_v4'
         self.n_class = 3
         self.n = 5
         self.channels = 14
@@ -47,16 +50,13 @@ class CloudDetector():
             
     def preprocessInput(self):
         'Process input image for prediction step'
-        if self.modelType == 'pixel':
-            'Normalization'
-            self.x = (self.input / 2.0) - 0.5
-            
+        'Normalization'
+        self.x = (self.input / 2.0) - 0.5
+        
+        if self.modelType == 'pixel':            
             '2D image -> 1D series of pixels '
             self.x = np.reshape(self.x, (self.spatial_x * self.spatial_y, self.channels))
-        if self.modelType == 'cnn':
-            'Normalization'
-            self.x = (self.input / 2.0) - 0.5
-            
+        if self.modelType == 'cnn':           
             'Set up ID system for generator'
             sample_number_per_row = self.spatial_x - self.n + 1
             sample_number_per_column = self.spatial_y - self.n + 1
@@ -65,18 +65,17 @@ class CloudDetector():
             
             'Init generator'            
             params = {'dim': self.segment_dim,
-                      'batch_size': 32768,
+                      'batch_size': self.spatial_y,
                       'n_classes': self.n_class}
             self.predict_generator = DataGenerator(self.x, ID_list, **params)
 
     def loadModel(self):
-        if self.modelType == 'pixel':  
-            self.model = tf.keras.models.load_model('pixelwise_v8.h5')
-            self.model.load_weights('pixelwise_v8_weights.hdf5')
+        if self.modelType == 'pixel':
+            filename = self.model_file_pixel
         if self.modelType == 'cnn':
-            print('loadModel() - cnn branch: not implemented')  
-            self.model = tf.keras.models.load_model('cnn_v0.h5')
-            self.model.load_weights('cnn_weights_v0.hdf5') 
+            filename = self.model_file_cnn 
+        self.model = tf.keras.models.load_model('models/' + filename + '.h5')
+        self.model.load_weights('models/' + filename + '_weights.hdf5') 
 
     def predict(self):
         'Return prediction'
@@ -86,13 +85,24 @@ class CloudDetector():
             if self.modelType == 'pixel':  
                 y = self.model.predict(self.x)
                 return np.reshape(y, (self.spatial_x, self.spatial_y, self.n_class))
-            if self.modelType() == 'cnn':
-                print('predict() - cnn branch: not implemented')
-                return self.model.predict_generator(self.predict_generator)
+            
+            if self.modelType == 'cnn':
+                y = self.model.predict_generator(self.predict_generator)
+                
+                '1D -> 2D (no prediction at edges)'
+                y_out = np.zeros((self.spatial_x, self.spatial_y, self.n_class))
+                half_seg = int(self.segment_dim[0] / 2)
+                sample_number_per_row = self.spatial_x - self.n + 1
+                for ID in range(y.shape[0]):
+                    a = ID  % sample_number_per_row + half_seg
+                    b = math.floor(ID  / sample_number_per_row) + half_seg
+                    y_out[a, b, :] = y[ID, :]
+                    
+                return y_out
 
     def updateInput(self, input):
         'Return prediction'  
-        self.input = input     
+        self.input = input
 
 class DataGenerator(tf.keras.utils.Sequence):
     'Generates data for Keras'
