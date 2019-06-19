@@ -12,11 +12,32 @@ Description of files:
 * [loader.ipynb](loader.ipynb) - How to download images from entire regions.
   * Requirements, creating region of interest, dowloading from SentineHub.
   * [roi.geojson](roi.geojson) - Coordinates of Region of Interest(RoI).
-* [cldetector.py](cldetector.py) - Cloud detection based on pixel-wise information.
-  * [pixelwise_v8.h5](pixelwise_v8.h5) - Used to reconstruct neural network structure.
-  * [pixelwise_v8_weights.hdf5](pixelwise_v8_weights.hdf5) - Model weights.
+* [cldetector.py](cldetector.py) - Cloud detection.
+  * [pixelwise_v8.h5](models/pixelwise_v8.h5) - Used to reconstruct neural network structure.
+  * [pixelwise_v8_weights.hdf5](models/pixelwise_v8_weights.hdf5) - Model weights.
+  * [cnn_v4.h5]([models/cnn_v4.h5) - Used to reconstruct neural network structure.
+  * [cnn_v4_weights.hdf5](models/cnn_v4_weights.hdf5) - Model weights.
 * [example.py](example.py) - Example to show the use of the detector and the it's output.
-  * [test_set_pixelwise.rar](test/test_set_pixelwise.rar) - For example.py. Has to be unpacked.
+  * [test_set.rar](test/test_set.rar) - For example.py. Has to be unpacked.
+
+## Expected quality of predictions
+
+A small training set was used to train the model. I plan to update only the CNN model in the future.
+
+### Pixel V8 model
+The trained model works fairly well for classic clouds and cirrus. Few false detection expected on white structures. Fog usually partly detected. Bodies of water often mislabeled as shadow.
+
+<img src="results/v8_17_cloud_mask.png" height="200">  <img src="results/v8_17_shadow_mask.png" height="200">
+<img src="results/v8_15_cloud_mask.png" height="200">  <img src="results/v8_15_shadow_mask.png" height="200">
+<img src="results/v8_14_cloud_mask.png" height="200">  <img src="results/v8_14_shadow_mask.png" height="200">
+<img src="results/v8_16_cloud_mask.png" height="200">  <img src="results/v8_16_shadow_mask.png" height="200">
+
+
+### CNN V4 model
+Less false detection on white buildings and water but more on open field. There is still issues with fog like atmospheric distortions but better than pixel model.
+
+<img src="results/cnn_v4_cloud_mask.png" height="600"> 
+<img src="results/cnn_v4_shadow_mask.png" height="600"> 
 
 ## How does it work?
 
@@ -46,20 +67,3 @@ output = glassball.predict()
 ```
 glassball.updateInput(new_image)
 ```
-
-## Expected quality of predictions
-
-A small training set was used to train the model. I plan to update the model in the future (more data, 2D convolution layers, etc.).
-
-V8 model (pixel)
-The trained model works fairly well for classic clouds and cirrus. Few false detection expected on white structures. Fog usually partly detected. Bodies of water often mislabeled as shadow.
-
-<img src="results/v8_17_cloud_mask.png" height="200">  <img src="results/v8_17_shadow_mask.png" height="200">
-<img src="results/v8_15_cloud_mask.png" height="200">  <img src="results/v8_15_shadow_mask.png" height="200">
-<img src="results/v8_14_cloud_mask.png" height="200">  <img src="results/v8_14_shadow_mask.png" height="200">
-<img src="results/v8_16_cloud_mask.png" height="200">  <img src="results/v8_16_shadow_mask.png" height="200">
-
-CNN model
-
-Coming soon...
-
